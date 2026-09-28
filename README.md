@@ -1,78 +1,40 @@
-# LINK PWA 1.0 — Full Solo / 4.4 Port
+# LINK PWA 1.0.1 — Stability / Solo 443
 
-Source direction: **LINK 4.4 · Reliability · build 443 (SHARED SESSION)**.
+Local-first PWA port based on LINK 4.4 Reliability / Shared Session build 443.
+No Supabase/backend is required for this solo-testing build.
 
-This is no longer the small PWA proof-of-concept. It is a local-first web port of the major LINK 4.4 product surfaces that can work without Supabase/realtime.
+## 1.0.1 stabilization pass
 
-## Ported into the PWA
+- Fixed iOS viewport / keyboard resizing with VisualViewport height syncing.
+- Increased form/composer input sizes to stop Safari focus auto-zoom.
+- Improved safe-area handling for chat, modals, Moments and floating navigation.
+- Fixed stale PWA assets by bumping the service-worker cache and using network-first navigation.
+- Migrates existing 1.0 local data from the previous v3 storage key.
+- Inbox / Archived tabs now work; chats can be archived and unarchived.
+- Message context sheet now closes when tapping outside it.
+- Silent Chat messages now actually expire locally according to the selected timer.
+- Read-receipt setting now affects chat metadata.
+- Group announcements-only mode is enforced for non-owners.
+- Blocked accounts are removed from primary Feed / Discover / Chats / Search surfaces.
+- Moments expire after 24 hours and local view counts increment once per session.
+- Local account switching now preserves a separate LINK connection list per test account.
+- Prevented local test accounts from creating accidental self-chats.
+- Added a working local avatar image picker with 256px compression for localStorage.
+- Profile layout setting now cycles Default / Compact / Showcase and visibly changes the profile.
+- Login Alerts and Devices settings now respond instead of being dead rows.
+- Device view shows the current local PWA session.
+- Improved small-iPhone responsive spacing.
 
-- LINK 4.4 ONE navigation: Feed / Discover / Create / Chats / Profile
-- Floating Liquid Glass-style 5-tab navigation + iOS safe areas
-- Feed 4.0
-- Notes
-- Moments + viewer + reactions + Highlights
-- LINK Pulse / LINK Now
-- BACKSTAGE promo card + install instructions
-- LINK Official feed card + read-only Official chat
-- Posts 2.0: likes, replies, threads, repost state, quote posts, bookmarks, profile pin, delete
-- Discover: people, posts, hashtags/trends, LINK requests
-- Unified Search across people, groups and posts
-- Activity center
-- Profile 4.0: Posts / Replies / Media / Likes
-- Profile editing, social fields, status and presence preview
-- Local LINK relationships + favorites
-- Direct chats and group chats
-- Double Tap reaction
-- Message actions: reply, edit, pin, forward, delete for me / everyone, reactions
-- Pinned message bar
-- Chat themes: Free, LINK Plus and LINK Pro collection from LINK 4.4
-- Silent Chat local timer preview
-- Group v3.5-style controls: rename, Everyone rename toggle, invite code, announcements-only, polls, admin note, member removal
-- Group polls + local voting
-- LINK Plus local entitlement preview
-- LINK Pro local entitlement preview
-- LINK Shop + profile effects + local LINK Coins
-- Custom status colors/icons + Staff gradient collection
-- Safety Center: block list, reports, security UI
-- Local account switcher + local test account creation
-- Staff Center preview (toggle in Settings → Solo testing)
-- Local LINK Official message sending in Staff preview
-- My LINK card / visual QR preview + simulated local scan
-- Light / Dark / System appearance
-- English / Czech core UI toggle
-- Installable manifest and offline app shell service worker
-- All local state persisted in localStorage
+## Main LINK 4.4 surfaces in this PWA
 
-## Intentionally local / simulated
+ONE Feed, Discover, Create Hub, Posts 2.0, Threads, Quotes, Reposts, Bookmarks,
+Notes, Moments, Highlights, LINK Pulse / LINK Now, Activity, Unified Search,
+LINK Official, DMs, Group Chat v3.5, Polls, chat themes, Double Tap reactions,
+Silent Chat, Profile 4.0, LINK Shop / profile effects, Plus / Pro preview,
+Safety Center, QR / My LINK, local test accounts, BACKSTAGE card and Staff preview.
 
-This build has **no backend** by request. The UI for server-dependent features is kept where useful, but actions stay on one device:
+## Run
 
-- no Supabase Auth
-- no cross-device account sync
-- no realtime remote messaging
-- no production E2E key exchange (the PWA explicitly says this in Encryption Info)
-- no remote push notifications
-- no remote moderation enforcement
-- no remote profile / username lookup
-- no real LINK QR identity resolver
-
-## Run / deploy
-
-Upload the whole folder to an HTTPS static host such as GitHub Pages. Keep these paths together:
-
-- `index.html`
-- `styles.css`
-- `app.js`
-- `manifest.webmanifest`
-- `sw.js`
-- `assets/`
-
-On iPhone/iPad: open the HTTPS URL in Safari → Share → **Add to Home Screen**.
-
-## Reset
-
-LINK Settings → Solo testing → Reset demo data.
-
-## Build marker
-
-`LINK PWA 1.0 · Full Solo · source 4.4/443`
+Host this directory over HTTPS (GitHub Pages is fine). On iPhone open in Safari,
+then Share -> Add to Home Screen. Service workers do not run correctly when opening
+`index.html` directly from the Files app.

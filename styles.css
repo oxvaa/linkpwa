@@ -44,3 +44,24 @@ body{min-height:100dvh;overflow:hidden;overscroll-behavior:none}button,input,tex
 .fullpage{position:absolute;inset:0;z-index:110;background:var(--bg);padding-top:var(--safe-top);overflow:auto}.fullhead{height:62px;display:flex;align-items:center;gap:10px;padding:0 13px;position:sticky;top:0;background:var(--glass);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid var(--line);z-index:3}.fullbody{padding:14px 15px calc(30px + var(--safe-bottom))}.moment-view{min-height:100dvh;background:#07070a;color:#fff;display:flex;flex-direction:column}.moment-head{display:flex;align-items:center;gap:9px;padding:calc(var(--safe-top) + 8px) 12px 8px}.moment-stage{flex:1;margin:0 8px 8px;border-radius:27px;background:linear-gradient(160deg,#25202c,#5b45b3);display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;position:relative;overflow:hidden}.moment-stage .caption{font-size:28px;font-weight:950;letter-spacing:-1px}.moment-actions{display:flex;gap:8px;padding:8px 12px calc(10px + var(--safe-bottom))}.moment-actions button{border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.1);color:#fff;border-radius:99px;min-height:42px;padding:0 13px;font-weight:850}
 #toastHost{position:fixed;z-index:999;left:50%;bottom:calc(95px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);pointer-events:none}.toast{background:rgba(18,19,23,.9);color:#fff;padding:10px 13px;border-radius:14px;font-size:11.5px;font-weight:800;box-shadow:0 10px 40px rgba(0,0,0,.25);backdrop-filter:blur(18px);animation:toastin .18s ease}@keyframes toastin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @media(min-width:720px){#app{border-left:1px solid var(--line);border-right:1px solid var(--line)}}
+
+/* 1.0.1 Stability fixes */
+:root{--app-height:100dvh}
+html,body{height:100%;width:100%;overflow:hidden}
+body{min-height:var(--app-height);touch-action:manipulation;-webkit-text-size-adjust:100%}
+#app{height:var(--app-height);min-height:var(--app-height)}
+.app-shell{height:var(--app-height)}
+.fullpage,.chatpage,.modalback{height:var(--app-height);max-height:var(--app-height)}
+.sheet.full{height:var(--app-height);max-height:var(--app-height)}
+.moment-view{min-height:var(--app-height);height:var(--app-height)}
+.input,.textarea,.select,.searchbar input,.composer textarea{font-size:16px}
+textarea,input,select{touch-action:manipulation}
+.screen,.fullpage,.sheet,.chatbody{-webkit-overflow-scrolling:touch}
+.nav-shell{transform:translateZ(0)}
+.nav{isolation:isolate}
+.modalback{overscroll-behavior:contain}
+.sheet{overscroll-behavior:contain}
+.context-menu{max-height:calc(var(--app-height) - var(--safe-top) - var(--safe-bottom) - 28px);overflow:auto}
+.profilehero.layout-compact{padding:14px 12px}.profilehero.layout-compact .avatar.lg{width:72px;height:72px}.profilehero.layout-compact .displayname{font-size:21px;margin-top:8px}.profilehero.layout-compact .stats{margin-top:11px;padding-top:10px}
+.profilehero.layout-showcase{padding:24px 15px;background:linear-gradient(145deg,var(--card),rgba(108,92,231,.12));border-color:rgba(108,92,231,.18)}.profilehero.layout-showcase .avatar.lg{width:104px;height:104px}.profilehero.layout-showcase .displayname{font-size:27px}
+@media (max-width:390px){.screen{padding-left:12px;padding-right:12px}.topbar{margin-left:-12px;margin-right:-12px;padding-left:12px;padding-right:12px}.brand{font-size:26px}.stats{gap:2px}.stat strong{font-size:15px}.stat span{font-size:9px}.profile-actions{gap:6px}.btn{padding-left:12px;padding-right:12px}.nav-shell{left:8px;right:8px}.navbtn{font-size:9px}.nav-badge{right:11px}.quickgrid{gap:7px}.quick{padding:12px}.post-media{min-height:180px}}
