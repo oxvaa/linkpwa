@@ -58,6 +58,7 @@ export interface Post {
   body: string
   mediaPath: string | null
   mediaType: string | null
+  mediaUrl?: string | null
   createdAt: number
   updatedAt: number | null
   parentId: string | null
@@ -67,6 +68,9 @@ export interface Post {
   likeCount: number
   likedByMe: boolean
   bookmarkedByMe: boolean
+  replyCount?: number
+  repostCount?: number
+  quoteCount?: number
 }
 
 export interface LinkRequest {
@@ -133,6 +137,25 @@ export interface Highlight {
   momentId: string
   title: string
   coverEmoji: string | null
+}
+
+export interface LinkNowStatus {
+  userId: string
+  text: string
+  icon: string
+  color: string
+  expiresAt: number
+}
+
+export interface OfficialAnnouncement {
+  id: string
+  title: string
+  body: string
+  actionLabel: string | null
+  actionUrl: string | null
+  createdAt: number
+  expiresAt: number | null
+  priority: number
 }
 
 export interface NotificationItem {
