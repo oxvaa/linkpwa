@@ -10,10 +10,12 @@ import { ProfilePage } from './pages/ProfilePage'
 import { ChatPage } from './pages/ChatPage'
 import { BottomNav } from './components/layout/BottomNav'
 import { SettingsSheet } from './pages/SettingsSheet'
-import { CreateSheet } from './pages/CreateSheet'
+import { CreateSheet, type CreateMode } from './pages/CreateSheet'
 import { SearchSheet } from './pages/SearchSheet'
 import { ActivitySheet } from './pages/ActivitySheet'
 import { UserProfileSheet } from './pages/UserProfileSheet'
+import { PostDetailSheet } from './pages/PostDetailSheet'
+import { MomentViewerSheet } from './pages/MomentViewerSheet'
 import { Toast } from './components/ui/Toast'
 
 export default function App() {
@@ -21,8 +23,11 @@ export default function App() {
   const [tab, setTab] = useState<TabKey>('feed')
   const [chatId, setChatId] = useState<string | null>(null)
   const [profileId, setProfileId] = useState<string | null>(null)
+  const [postId, setPostId] = useState<string | null>(null)
+  const [momentId, setMomentId] = useState<string | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
+  const [createMode, setCreateMode] = useState<CreateMode>('menu')
   const [searchOpen, setSearchOpen] = useState(false)
   const [activityOpen, setActivityOpen] = useState(false)
 
@@ -33,8 +38,9 @@ export default function App() {
   if (!store.session) return <AuthPage />
   if (!store.data) return <BootScreen text={store.error || 'Syncing LINK…'} />
 
+  const openCreate = (mode: CreateMode = 'menu') => { setCreateMode(mode); setCreateOpen(true) }
   const changeTab = (next: TabKey) => {
-    if (next === 'create') { setCreateOpen(true); return }
+    if (next === 'create') { openCreate('menu'); return }
     setTab(next)
   }
   const openProfile = (id: string) => {
@@ -44,25 +50,27 @@ export default function App() {
 
   return <div className="relative min-h-[100dvh] bg-[var(--bg)] text-[var(--text)]">
     <AnimatePresence mode="wait" initial={false}>
-      <motion.main key={tab} initial={{ opacity: 0, x: 7 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -5 }} transition={{ duration: .16 }}>
-        {tab === 'feed' && <FeedPage onSearch={() => setSearchOpen(true)} onActivity={() => setActivityOpen(true)} onProfile={openProfile} onCreateMoment={() => setCreateOpen(true)} onCreateNote={() => setCreateOpen(true)} />}
+      <motion.main key={tab} initial={{ opacity: 0, x: 5 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -4 }} transition={{ duration: .14 }}>
+        {tab === 'feed' && <FeedPage onSearch={() => setSearchOpen(true)} onActivity={() => setActivityOpen(true)} onProfile={openProfile} onCreateMoment={() => openCreate('moment')} onCreateNote={() => openCreate('note')} onOpenMoment={setMomentId} onOpenPost={setPostId} />}
         {tab === 'discover' && <DiscoverPage onProfile={openProfile} />}
         {tab === 'chats' && <ChatsPage onOpenChat={setChatId} />}
-        {tab === 'profile' && <ProfilePage onSettings={() => setSettingsOpen(true)} onSearch={() => setSearchOpen(true)} onProfile={openProfile} />}
+        {tab === 'profile' && <ProfilePage onSettings={() => setSettingsOpen(true)} onSearch={() => setSearchOpen(true)} onProfile={openProfile} onOpenPost={setPostId} />}
       </motion.main>
     </AnimatePresence>
 
     <BottomNav active={tab} onChange={changeTab} activityCount={unreadActivity} chatCount={unreadChats} />
     {chatId && <ChatPage chatId={chatId} onBack={() => setChatId(null)} onProfile={openProfile} />}
-    <CreateSheet open={createOpen} onClose={() => setCreateOpen(false)} onOpenChat={setChatId} />
+    <CreateSheet open={createOpen} initialMode={createMode} onClose={() => setCreateOpen(false)} onOpenChat={setChatId} />
     <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} onEditProfile={() => { setSettingsOpen(false); setTab('profile') }} />
     <SearchSheet open={searchOpen} onClose={() => setSearchOpen(false)} onProfile={openProfile} />
     <ActivitySheet open={activityOpen} onClose={() => setActivityOpen(false)} onProfile={openProfile} />
-    <UserProfileSheet profileId={profileId} onClose={() => setProfileId(null)} onOpenChat={setChatId} />
+    <UserProfileSheet profileId={profileId} onClose={() => setProfileId(null)} onOpenChat={setChatId} onOpenPost={setPostId} />
+    <PostDetailSheet postId={postId} onClose={() => setPostId(null)} onProfile={openProfile} onOpenPost={setPostId} />
+    <MomentViewerSheet momentId={momentId} onClose={() => setMomentId(null)} onProfile={openProfile} />
     <Toast message={store.toast} />
   </div>
 }
 
 function BootScreen({ text }: { text: string }) {
-  return <div className="safe-top flex min-h-[100dvh] items-center justify-center bg-[var(--bg)] px-6"><div className="text-center"><motion.div animate={{ scale: [1,1.05,1], opacity: [.75,1,.75] }} transition={{ repeat: Infinity, duration: 1.5 }} className="text-[44px] font-black tracking-[-.075em]">LINK</motion.div><div className="mt-3 text-[13px] font-bold text-[var(--muted)]">{text}</div></div></div>
+  return <div className="safe-top flex min-h-[100dvh] items-center justify-center bg-[var(--bg)] px-6"><div className="text-center"><motion.div animate={{ scale: [1,1.04,1], opacity: [.75,1,.75] }} transition={{ repeat: Infinity, duration: 1.5 }} className="text-[38px] font-black tracking-[-.075em]">LINK</motion.div><div className="mt-2.5 text-[12px] font-bold text-[var(--muted)]">{text}</div></div></div>
 }

@@ -43,56 +43,56 @@ button { touch-action: manipulation; }
 input, textarea { font-size: 16px; }
 ::selection { background: color-mix(in srgb, var(--link-accent) 24%, transparent); }
 
-.safe-top { padding-top: max(12px, env(safe-area-inset-top)); }
-.safe-bottom { padding-bottom: max(10px, env(safe-area-inset-bottom)); }
+.safe-top { padding-top: max(10px, env(safe-area-inset-top)); }
+.safe-bottom { padding-bottom: max(8px, env(safe-area-inset-bottom)); }
 .app-scroll { -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; }
 .hide-scrollbar { scrollbar-width: none; }
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 
-.link-shadow { box-shadow: 0 18px 50px rgba(17,17,20,.10), 0 2px 10px rgba(17,17,20,.05); }
-.dark .link-shadow { box-shadow: 0 18px 50px rgba(0,0,0,.35), 0 2px 10px rgba(0,0,0,.2); }
+.link-shadow { box-shadow: 0 14px 38px rgba(17,17,20,.09), 0 2px 8px rgba(17,17,20,.04); }
+.dark .link-shadow { box-shadow: 0 14px 38px rgba(0,0,0,.32), 0 2px 8px rgba(0,0,0,.18); }
 
 .glass {
-  background: color-mix(in srgb, var(--surface-solid) 76%, transparent);
-  -webkit-backdrop-filter: saturate(180%) blur(26px);
-  backdrop-filter: saturate(180%) blur(26px);
+  background: color-mix(in srgb, var(--surface-solid) 78%, transparent);
+  -webkit-backdrop-filter: saturate(175%) blur(24px);
+  backdrop-filter: saturate(175%) blur(24px);
   border: 1px solid color-mix(in srgb, var(--hairline) 80%, transparent);
 }
 
 .ios-card {
   background: var(--surface-solid);
   border: 1px solid var(--hairline);
-  border-radius: 28px;
+  border-radius: 22px;
 }
 
 .verified-img { display: block; flex: 0 0 auto; }
 .profile-avatar-glow {
-  box-shadow: 0 0 0 1px rgba(255,255,255,.78), 0 0 34px color-mix(in srgb, var(--link-accent) 28%, transparent);
+  box-shadow: 0 0 0 1px rgba(255,255,255,.72), 0 0 26px color-mix(in srgb, var(--link-accent) 24%, transparent);
 }
 
 .message-in {
   background: var(--surface-soft);
   color: var(--text);
-  border-radius: 22px;
+  border-radius: 20px;
 }
 .message-out {
   background: linear-gradient(145deg, #0a84ff, #168cff);
   color: #fff;
-  border-radius: 22px;
+  border-radius: 20px;
 }
 
 .settings-sheet {
   background: var(--bg);
-  border-radius: 36px 36px 0 0;
-  box-shadow: 0 -20px 70px rgba(0,0,0,.18);
+  border-radius: 30px 30px 0 0;
+  box-shadow: 0 -16px 54px rgba(0,0,0,.16);
 }
 
 .bottom-nav {
-  background: color-mix(in srgb, var(--surface-solid) 78%, transparent);
-  -webkit-backdrop-filter: saturate(180%) blur(30px);
-  backdrop-filter: saturate(180%) blur(30px);
+  background: color-mix(in srgb, var(--surface-solid) 80%, transparent);
+  -webkit-backdrop-filter: saturate(180%) blur(28px);
+  backdrop-filter: saturate(180%) blur(28px);
   border: 1px solid var(--hairline);
-  box-shadow: 0 12px 40px rgba(17,17,20,.18);
+  box-shadow: 0 10px 30px rgba(17,17,20,.15);
 }
 
 .no-header-blur {
@@ -101,6 +101,9 @@ input, textarea { font-size: 16px; }
   backdrop-filter: none !important;
 }
 
+.markdown-text { word-break: break-word; }
+.markdown-text button { font: inherit; }
+
 @media (min-width: 760px) {
-  #root { max-width: 520px; margin: 0 auto; min-height: 100dvh; border-inline: 1px solid var(--hairline); }
+  #root { max-width: 500px; margin: 0 auto; min-height: 100dvh; border-inline: 1px solid var(--hairline); }
 }
