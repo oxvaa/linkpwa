@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import {
-  authApi, bootstrap, createDirectChat, createGroupChat, createPost, markNotificationsRead, reactToMessage,
+  authApi, bootstrap, createDirectChat, createGroupChat, createMoment, createPost, markNotificationsRead, reactToMessage,
   removeLink, requestLink, respondToLink, saveLinkNow, saveNote, sendEncryptedMessage, toggleBlock,
   toggleFavorite, togglePostBookmark, togglePostLike, updateProfile, updateUserSettings, uploadAvatar,
   type BootstrapData,
@@ -25,7 +25,9 @@ interface AppStoreValue {
   patchProfile: (patch: Partial<Profile>) => Promise<void>
   changeAvatar: (file: File) => Promise<void>
   patchSettings: (patch: Partial<UserSettings>) => Promise<void>
-  addPost: (body: string, parentId?: string | null, quoteOfId?: string | null) => Promise<void>
+  addPost: (body: string, parentId?: string | null, quoteOfId?: string | null, mediaFile?: File | null) => Promise<void>
+  addMoment: (file: File, caption?: string) => Promise<void>
+  repostPost: (post: Post) => Promise<void>
   likePost: (post: Post) => Promise<void>
   bookmarkPost: (post: Post) => Promise<void>
   sendLinkRequest: (profileId: string) => Promise<void>
@@ -109,12 +111,16 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       if (refreshTimer.current) window.clearTimeout(refreshTimer.current)
       refreshTimer.current = window.setTimeout(() => void refresh(true), 220)
     }
-    const channel = supabase.channel(`link-pwa3:${session.user.id}`)
+    const channel = supabase.channel(`link-pwa31:${session.user.id}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, schedule)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'message_reactions' }, schedule)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'connections' }, schedule)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profile_posts' }, schedule)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profile_post_likes' }, schedule)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'moments' }, schedule)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'notes' }, schedule)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'link_now_statuses' }, schedule)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'official_announcements' }, schedule)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, schedule)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${session.user.id}` }, schedule)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'chats' }, schedule)
@@ -187,11 +193,23 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       await updateUserSettings(uid, patch)
       await refresh(true)
     },
-    addPost: async (body, parentId, quoteOfId) => {
+    addPost: async (body, parentId, quoteOfId, mediaFile) => {
       const uid = requireUser()
-      await createPost(uid, body, { parentId, quoteOfId })
+      await createPost(uid, body, { parentId, quoteOfId }, mediaFile)
       await refresh(true)
-      notify('Posted to LINK')
+      notify(parentId ? 'Reply posted' : 'Posted to LINK')
+    },
+    addMoment: async (file, caption = '') => {
+      const uid = requireUser()
+      await createMoment(uid, file, caption)
+      await refresh(true)
+      notify('Moment shared')
+    },
+    repostPost: async post => {
+      const uid = requireUser()
+      await createPost(uid, '', { repostOfId: post.id })
+      await refresh(true)
+      notify('Reposted')
     },
     likePost: async post => {
       const uid = requireUser()
