@@ -1,40 +1,64 @@
-# LINK PWA 1.0.1 — Stability / Solo 443
+# LINK PWA 2.0 — Backend / source 4.4 build 443
 
-Local-first PWA port based on LINK 4.4 Reliability / Shared Session build 443.
-No Supabase/backend is required for this solo-testing build.
+LINK PWA 2.0 is the web/PWA port of LINK 4.4 (SHARED SESSION / Reliability build 443), redesigned for iOS with an Instagram × Apple × ChatGPT visual direction.
 
-## 1.0.1 stabilization pass
+## What changed in 2.0
 
-- Fixed iOS viewport / keyboard resizing with VisualViewport height syncing.
-- Increased form/composer input sizes to stop Safari focus auto-zoom.
-- Improved safe-area handling for chat, modals, Moments and floating navigation.
-- Fixed stale PWA assets by bumping the service-worker cache and using network-first navigation.
-- Migrates existing 1.0 local data from the previous v3 storage key.
-- Inbox / Archived tabs now work; chats can be archived and unarchived.
-- Message context sheet now closes when tapping outside it.
-- Silent Chat messages now actually expire locally according to the selected timer.
-- Read-receipt setting now affects chat metadata.
-- Group announcements-only mode is enforced for non-owners.
-- Blocked accounts are removed from primary Feed / Discover / Chats / Search surfaces.
-- Moments expire after 24 hours and local view counts increment once per session.
-- Local account switching now preserves a separate LINK connection list per test account.
-- Prevented local test accounts from creating accidental self-chats.
-- Added a working local avatar image picker with 256px compression for localStorage.
-- Profile layout setting now cycles Default / Compact / Showcase and visibly changes the profile.
-- Login Alerts and Devices settings now respond instead of being dead rows.
-- Device view shows the current local PWA session.
-- Improved small-iPhone responsive spacing.
+- New profile UI: flatter Instagram-style hierarchy, inline verified badge, compact metrics, Highlights and profile tabs.
+- New profile detail and Edit Profile screens.
+- ChatGPT-style iOS Settings: grouped cards, close button, right-side values, toggles and cleaner spacing.
+- Chat header is now crisp and opaque — the old backdrop-filter blur over avatar/name is removed.
+- Message bubbles use fully rounded Expo-style geometry.
+- The blue verified badge is the original PNG asset extracted from LINK 4.4 Expo (`assets/verified-badge.png`).
+- Reduced excessive blur across cards and headers; Liquid Glass is mainly retained for the floating bottom navigation.
+- Updated iOS safe-area / 390–430 pt responsive layout.
 
-## Main LINK 4.4 surfaces in this PWA
+## LINK Production backend
 
-ONE Feed, Discover, Create Hub, Posts 2.0, Threads, Quotes, Reposts, Bookmarks,
-Notes, Moments, Highlights, LINK Pulse / LINK Now, Activity, Unified Search,
-LINK Official, DMs, Group Chat v3.5, Polls, chat themes, Double Tap reactions,
-Silent Chat, Profile 4.0, LINK Shop / profile effects, Plus / Pro preview,
-Safety Center, QR / My LINK, local test accounts, BACKSTAGE card and Staff preview.
+This build is configured for the existing Supabase project **LINK Production** using the browser-safe Supabase publishable key. It does not include a service-role secret.
 
-## Run
+When signed in, PWA 2.0 can sync:
 
-Host this directory over HTTPS (GitHub Pages is fine). On iPhone open in Safari,
-then Share -> Add to Home Screen. Service workers do not run correctly when opening
-`index.html` directly from the Files app.
+- Supabase Auth session
+- profiles and profile editing
+- avatar upload to the existing `avatars` bucket
+- LINK relationships / requests
+- direct chats and group chats
+- chat encryption keys
+- AES-GCM encrypted messages compatible with LINK 4.4
+- chat themes/settings snapshot
+- notes
+- profile posts + likes/bookmarks
+- Moments read snapshot
+- favorites and blocked users
+- notifications
+- Highlights
+- LINK Now
+- group polls
+- selected user settings
+- Realtime refreshes for the core social/chat tables
+
+If no LINK account is signed in, the app keeps the local preview/fallback so the UI can still be tested.
+
+## Backend compatibility
+
+The backend already contains the required RLS-protected tables, RPCs and Supabase Realtime publications. No production database migration was required for this PWA build.
+
+Core RPCs used by this build:
+
+- `request_link(other_user uuid)`
+- `create_direct_chat(other_user uuid)`
+- `create_group_chat(group_name text, member_ids uuid[])`
+- `recent_messages_for_my_chats(p_per_chat integer)`
+
+Messages use the same AES-256-GCM combined format as LINK 4.4: 12-byte IV + ciphertext + 16-byte authentication tag.
+
+## Run / deploy
+
+Upload the whole folder to GitHub Pages, Vercel or any HTTPS static host. For iOS PWA installation, open the deployed URL in Safari and use **Share → Add to Home Screen**.
+
+The Service Worker caches the local PWA shell and assets. Backend sync naturally requires an internet connection.
+
+## Before a public launch
+
+Supabase Security Advisor currently reports that leaked-password protection is disabled in Auth. Enable it before treating the app as a public production release. The Advisor also reports an RLS-enabled internal push-dispatch table with no client policy; this build does not depend on direct client access to that table.
