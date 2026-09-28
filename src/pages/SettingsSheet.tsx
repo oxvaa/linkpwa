@@ -14,11 +14,11 @@ export function SettingsSheet({ open, onClose, onEditProfile }: { open: boolean;
   const nextTheme = () => patchSettings({ themeSetting: s.themeSetting === 'system' ? 'light' : s.themeSetting === 'light' ? 'dark' : 'system' })
 
   return <Sheet open={open} title="Settings" onClose={onClose} full>
-    <div className="pb-6">
-      <button onClick={onEditProfile} className="mb-7 flex w-full items-center gap-4 rounded-[28px] border border-[var(--hairline)] bg-[var(--surface-solid)] p-4 text-left link-shadow">
-        <Avatar profile={data.me} size={56} />
-        <div className="min-w-0 flex-1"><div className="truncate text-[18px] font-[850]">{data.me.name}</div><div className="mt-1 truncate text-[13px] text-[var(--muted)]">{session?.user.email}</div></div>
-        <span className="text-[24px] text-[var(--muted)]">›</span>
+    <div className="pb-5">
+      <button onClick={onEditProfile} className="mb-5 flex w-full items-center gap-3 rounded-[22px] border border-[var(--hairline)] bg-[var(--surface-solid)] p-3.5 text-left link-shadow">
+        <Avatar profile={data.me} size={48} />
+        <div className="min-w-0 flex-1"><div className="truncate text-[16px] font-[850]">{data.me.name}</div><div className="mt-0.5 truncate text-[12px] text-[var(--muted)]">{session?.user.email}</div></div>
+        <span className="text-[21px] text-[var(--muted)]">›</span>
       </button>
 
       <SettingsGroup title="Account">
@@ -29,7 +29,7 @@ export function SettingsSheet({ open, onClose, onEditProfile }: { open: boolean;
 
       <SettingsGroup title="Theme">
         <SettingsRow icon={Smartphone} title="Appearance" value={themeLabel} onClick={() => void nextTheme()} />
-        <SettingsRow icon={Palette} title="Accent color"><div className="flex gap-2">{accents.map(color => <button key={color} onClick={() => void patchProfile({ profileAccent: color })} className={`h-6 w-6 rounded-full border-2 ${data.me.profileAccent.toLowerCase() === color.toLowerCase() ? 'border-[var(--text)]' : 'border-transparent'}`} style={{ background: color }} aria-label={`Accent ${color}`} />)}</div></SettingsRow>
+        <SettingsRow icon={Palette} title="Accent color"><div className="flex gap-1.5">{accents.map(color => <button key={color} onClick={() => void patchProfile({ profileAccent: color })} className={`h-[22px] w-[22px] rounded-full border-2 ${data.me.profileAccent.toLowerCase() === color.toLowerCase() ? 'border-[var(--text)]' : 'border-transparent'}`} style={{ background: color }} aria-label={`Accent ${color}`} />)}</div></SettingsRow>
       </SettingsGroup>
 
       <SettingsGroup title="App settings">
@@ -55,7 +55,7 @@ export function SettingsSheet({ open, onClose, onEditProfile }: { open: boolean;
         <SettingsRow icon={LogOut} title="Sign out" value={session?.user.email || ''} danger onClick={() => void signOut()} />
       </SettingsGroup>
 
-      <div className="px-4 pb-4 text-center text-[11px] leading-5 text-[var(--muted)]">LINK PWA 3.0 · React + Tailwind<br/>LINK Production · Supabase Realtime</div>
+      <div className="px-4 pb-3 text-center text-[10px] leading-[18px] text-[var(--muted)]">LINK PWA 3.1 · Comfy UI + Posts 2.1<br/>LINK Production · Supabase Realtime</div>
     </div>
   </Sheet>
 }
