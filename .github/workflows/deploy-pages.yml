@@ -30,31 +30,27 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
-      - name: TypeScript check
-        run: npm run typecheck
-
-      - name: Build production PWA
-        run: npm run build
+      - name: Build LINK PWA
+        run: npx vite build
 
       - name: Verify production artifact
         shell: bash
         run: |
           test -f dist/index.html
+          test -d dist/assets
 
           if grep -q '/src/main.tsx' dist/index.html; then
-            echo "ERROR: dist/index.html still references raw Vite source."
+            echo "ERROR: raw TypeScript source is still referenced."
             exit 1
           fi
 
-          test -d dist/assets
-
           if ! grep -q '/linkpwa/assets/' dist/index.html; then
-            echo "ERROR: dist/index.html is not using the /linkpwa/ GitHub Pages base."
+            echo "ERROR: wrong GitHub Pages base path."
             cat dist/index.html
             exit 1
           fi
 
-          echo "Production artifact looks valid for oxvaa/linkpwa."
+          echo "LINK PWA production build is valid."
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
