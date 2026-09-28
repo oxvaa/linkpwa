@@ -1,12 +1,12 @@
 {
-  "name": "LINK PWA",
+  "name": "LINK PWA · Full Solo",
   "short_name": "LINK",
-  "description": "LINK PWA 1.0 — local solo testing build",
+  "description": "LINK 4.4-inspired local-first PWA for solo testing",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f6f6f8",
-  "theme_color": "#f6f6f8",
+  "background_color": "#f7f7fa",
+  "theme_color": "#f7f7fa",
   "orientation": "portrait-primary",
   "icons": [
     {"src":"./assets/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
