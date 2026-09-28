@@ -1,6 +1,6 @@
-# LINK PWA 3.0
+# LINK PWA 3.0.3.1
 
-Major PWA rewrite of LINK 4.4 / build 443.
+React/Tailwind production architecture for LINK, based on LINK 4.4 / build 443 and connected to the existing LINK Production Supabase backend.
 
 ## Stack
 
@@ -12,72 +12,61 @@ Major PWA rewrite of LINK 4.4 / build 443.
 - Supabase Auth / Postgres / Realtime / Storage
 - vite-plugin-pwa + Workbox
 
+## Important: GitHub Pages deployment
+
+This repository is **source code**, not a static folder that GitHub Pages can serve directly.
+
+For `https://oxvaa.github.io/`, configure:
+
+**GitHub repository → Settings → Pages → Build and deployment → Source → GitHub Actions**
+
+The included `.github/workflows/deploy-pages.yml` runs:
+
+1. `npm install`
+2. TypeScript check
+3. Vite production build
+4. deployment of **`dist/` only**
+
+Do **not** use `Deploy from a branch → main / (root)` for this project. Doing that serves the raw `/src/main.tsx` entry before Vite has compiled it and can result in a completely white page.
+
+See `PAGES_FIX.md` for the recovery steps.
+
+## 3.0.1 white-screen protection
+
+- GitHub user-site production base fixed to `/`
+- PWA scope/start URL fixed to `/`
+- Pages workflow verifies that `dist/index.html` no longer references raw `/src/main.tsx`
+- visible boot fallback added instead of a silent blank screen
+- global startup diagnostics added
+- React render Error Boundary added
+- `.nojekyll` shipped with the production public files
+
 ## Backend
 
-This project connects to the existing **LINK Production** Supabase project. It does not create demo users or a local fallback account.
+The browser uses the Supabase publishable key only. No service-role secret is bundled.
 
-The browser only receives the Supabase **publishable** key. No service-role key is included.
+Implemented backend flows include Auth, profiles, LINK requests, favorites/blocks, feed/posts, notes, LINK Now, direct/group chat creation, encrypted messages, Realtime refresh, notifications, avatar Storage upload, settings, highlights, and Moments read data.
 
-### Implemented backend flows
-
-- Required Auth gate on app launch
-- Sign in, register, password reset, sign out
-- Profiles + verified styles + account roles
-- Profile edit + avatar upload to `avatars`
-- LINK requests / accept / decline / unlink
-- Favorites + blocks
-- Feed / posts / likes / bookmarks / replies data model
-- Notes and LINK Now
-- Direct chats via `create_direct_chat`
-- Groups via `create_group_chat`
-- Chat keys from `chat_keys`
-- AES-256-GCM message format compatible with the LINK 4.4 web/Expo backend format
-- Realtime refresh for messages, reactions, connections, posts, profiles, notifications and chat membership
-- Notifications / Activity
-- User settings and theme sync
-- Highlights and Moments read model
-
-## UI direction
-
-PWA 3.0 is rebuilt around an iOS-first design system:
-
-- Instagram-style profiles and social hierarchy
-- ChatGPT iOS-style grouped Settings
-- Apple-style safe areas, sheets and spring transitions
-- Floating Liquid Glass navigation only where blur is useful
-- Chat header intentionally has **no backdrop blur**, so avatar/name stay sharp
-- Fully rounded message bubbles
-- Original blue verified asset from LINK 4.4 Expo is in `public/assets/verified-badge.png`
-
-## Run locally
+## Local development
 
 ```bash
 npm install
 npm run dev
 ```
 
-Production build:
+Production validation:
 
 ```bash
+npm run typecheck
 npm run build
 npm run preview
 ```
 
-## Deploy without a PC
 
-The repository includes `.github/workflows/deploy-pages.yml`.
+## 3.0.3 GitHub Pages fix
 
-1. Upload the project contents to a GitHub repository.
-2. In GitHub → Settings → Pages, choose **GitHub Actions** as the source.
-3. Push to `main` or run the workflow manually.
-4. GitHub installs dependencies, builds Vite and deploys `dist/` automatically.
-
-`vite.config.ts` uses `base: './'`, so it is suitable for GitHub Pages subpaths.
-
-## PWA / iPhone
-
-Open the deployed site in Safari → Share → **Add to Home Screen**. The PWA uses safe-area insets for Dynamic Island / Home Indicator and a standalone manifest.
-
-## Important
-
-This ZIP is the new React/Tailwind source architecture, not another patch to the previous monolithic `app.js`. The old PWA 2.0 files are not required.
+- Actual target repository: `oxvaa/linkpwa`
+- Vite base: `/linkpwa/`
+- PWA start URL / scope: `/linkpwa/`
+- Workbox navigation fallback: `/linkpwa/index.html`
+- Includes `.github/workflows/deploy-pages.yml` to build and deploy `dist/` instead of serving raw TypeScript source.
