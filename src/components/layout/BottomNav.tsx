@@ -11,15 +11,15 @@ const tabs = [
 ]
 
 export function BottomNav({ active, onChange, activityCount = 0, chatCount = 0 }: { active: TabKey; onChange: (tab: TabKey) => void; activityCount?: number; chatCount?: number }) {
-  return <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[520px] px-4 pb-[max(10px,env(safe-area-inset-bottom))]">
-    <nav className="bottom-nav pointer-events-auto grid h-[84px] grid-cols-5 items-center rounded-[32px] px-1.5">
+  return <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[500px] px-3 pb-[max(7px,env(safe-area-inset-bottom))]">
+    <nav className="bottom-nav pointer-events-auto grid h-[72px] grid-cols-5 items-center rounded-[28px] px-1">
       {tabs.map(({ key, label, icon: Icon }) => {
-        if (key === 'create') return <div className="grid place-items-center" key={key}><motion.button whileTap={{ scale: .9 }} onClick={() => onChange(key)} className="grid h-14 w-14 place-items-center rounded-[20px] bg-[#111114] text-white shadow-lg dark:bg-white dark:text-black"><Icon size={29} strokeWidth={2.2} /></motion.button></div>
+        if (key === 'create') return <div className="grid place-items-center" key={key}><motion.button whileTap={{ scale: .9 }} onClick={() => onChange(key)} className="grid h-12 w-12 place-items-center rounded-[17px] bg-[#111114] text-white shadow-md dark:bg-white dark:text-black"><Icon size={25} strokeWidth={2.2} /></motion.button></div>
         const selected = active === key
         const count = key === 'discover' ? activityCount : key === 'chats' ? chatCount : 0
-        return <button key={key} onClick={() => onChange(key)} className={`relative flex h-[70px] flex-col items-center justify-center gap-1 rounded-[25px] transition ${selected ? 'bg-[var(--surface-solid)] text-[var(--text)] shadow-sm' : 'text-[var(--muted)]'}`}>
-          <div className="relative"><Icon size={23} strokeWidth={selected ? 2.4 : 2} />{count > 0 && <span className="absolute -right-3 -top-2 grid min-w-5 place-items-center rounded-full border-2 border-[var(--surface-solid)] bg-red-500 px-1 text-[10px] font-black leading-4 text-white">{count > 99 ? '99+' : count}</span>}</div>
-          <span className="text-[11px] font-[800]">{label}</span>
+        return <button key={key} onClick={() => onChange(key)} className={`relative flex h-[60px] flex-col items-center justify-center gap-0.5 rounded-[21px] transition ${selected ? 'bg-[var(--surface-solid)] text-[var(--text)] shadow-sm' : 'text-[var(--muted)]'}`}>
+          <div className="relative"><Icon size={21} strokeWidth={selected ? 2.4 : 2} />{count > 0 && <span className="absolute -right-2.5 -top-2 grid min-w-[18px] place-items-center rounded-full border-2 border-[var(--surface-solid)] bg-red-500 px-1 text-[9px] font-black leading-[14px] text-white">{count > 99 ? '99+' : count}</span>}</div>
+          <span className="text-[10px] font-[800]">{label}</span>
         </button>
       })}
     </nav>
