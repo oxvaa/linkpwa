@@ -2,15 +2,24 @@ import type { Session } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 import { decryptMessage, encryptMessage } from './crypto'
 import { normalizeUsername, toMs } from './format'
-import type { ChatSummary, Entitlements, Highlight, LinkRequest, Message, Moment, Note, NotificationItem, Post, Profile, UserSettings } from '../types'
+import type { ChatSummary, Entitlements, Highlight, LinkNowStatus, LinkRequest, Message, Moment, Note, NotificationItem, OfficialAnnouncement, Post, Profile, UserSettings } from '../types'
 
-const noThrow = async <T>(promise: PromiseLike<{ data: T; error: { message: string } | null }>, fallback: T): Promise<T> => {
+async function queryRows(promise: PromiseLike<{ data: unknown; error: { message: string } | null }>): Promise<any[]> {
   const { data, error } = await promise
   if (error) {
     console.warn('[LINK optional query]', error.message)
-    return fallback
+    return []
   }
-  return data ?? fallback
+  return Array.isArray(data) ? data : []
+}
+
+async function queryOne(promise: PromiseLike<{ data: unknown; error: { message: string } | null }>): Promise<any | null> {
+  const { data, error } = await promise
+  if (error) {
+    console.warn('[LINK optional query]', error.message)
+    return null
+  }
+  return data ?? null
 }
 
 export const mapProfile = (row: any): Profile => ({
@@ -56,7 +65,7 @@ const defaultSettings: UserSettings = {
 
 export async function ensureProfile(session: Session) {
   const uid = session.user.id
-  const current = await noThrow(supabase.from('profiles').select('*').eq('id', uid).maybeSingle(), null as any)
+  const current = await queryOne(supabase.from('profiles').select('*').eq('id', uid).maybeSingle())
   if (current) return mapProfile(current)
   const meta = session.user.user_metadata || {}
   const username = normalizeUsername(meta.username || `user_${uid.replaceAll('-', '').slice(0, 8)}`)
@@ -82,6 +91,8 @@ export interface BootstrapData {
   moments: Moment[]
   highlights: Highlight[]
   notifications: NotificationItem[]
+  linkNow: LinkNowStatus[]
+  officialAnnouncements: OfficialAnnouncement[]
 }
 
 export async function bootstrap(session: Session): Promise<BootstrapData> {
@@ -90,27 +101,29 @@ export async function bootstrap(session: Session): Promise<BootstrapData> {
   const [
     profileRows, settingsRow, entitlementRow, connectionRows, postRows, likeRows, bookmarkRows,
     favoriteRows, blockedRows, chatRows, memberRows, keyRows, messageRows, reactionRows, chatSettingRows,
-    noteRows, momentRows, highlightRows, notificationRows,
+    noteRows, momentRows, highlightRows, notificationRows, linkNowRows, officialRows,
   ] = await Promise.all([
-    noThrow(supabase.from('profiles').select('*').order('name'), [] as any[]),
-    noThrow(supabase.from('user_settings').select('*').eq('user_id', uid).maybeSingle(), null as any),
-    noThrow(supabase.from('entitlements').select('*').eq('user_id', uid).maybeSingle(), null as any),
-    noThrow(supabase.from('connections').select('*').or(`user_a.eq.${uid},user_b.eq.${uid}`).order('updated_at', { ascending: false }), [] as any[]),
-    noThrow(supabase.from('profile_posts').select('*').order('created_at', { ascending: false }).limit(250), [] as any[]),
-    noThrow(supabase.from('profile_post_likes').select('*').limit(5000), [] as any[]),
-    noThrow(supabase.from('profile_post_bookmarks').select('*').eq('user_id', uid).limit(1500), [] as any[]),
-    noThrow(supabase.from('favorites').select('*').eq('user_id', uid), [] as any[]),
-    noThrow(supabase.from('blocked_users').select('*').eq('blocker_id', uid), [] as any[]),
-    noThrow(supabase.from('chats').select('*').order('updated_at', { ascending: false }), [] as any[]),
-    noThrow(supabase.from('chat_members').select('*'), [] as any[]),
-    noThrow(supabase.from('chat_keys').select('*').eq('user_id', uid), [] as any[]),
-    noThrow(supabase.rpc('recent_messages_for_my_chats', { p_per_chat: 60 }), [] as any[]),
-    noThrow(supabase.from('message_reactions').select('*').limit(4000), [] as any[]),
-    noThrow(supabase.from('chat_user_settings').select('*').eq('user_id', uid), [] as any[]),
-    noThrow(supabase.from('notes').select('*').order('created_at', { ascending: false }).limit(120), [] as any[]),
-    noThrow(supabase.from('moments').select('*').eq('archived', false).order('created_at', { ascending: false }).limit(120), [] as any[]),
-    noThrow(supabase.from('profile_highlights').select('*').order('created_at', { ascending: true }).limit(200), [] as any[]),
-    noThrow(supabase.from('notifications').select('*').eq('user_id', uid).order('created_at', { ascending: false }).limit(120), [] as any[]),
+    queryRows(supabase.from('profiles').select('*').order('name')),
+    queryOne(supabase.from('user_settings').select('*').eq('user_id', uid).maybeSingle()),
+    queryOne(supabase.from('entitlements').select('*').eq('user_id', uid).maybeSingle()),
+    queryRows(supabase.from('connections').select('*').or(`user_a.eq.${uid},user_b.eq.${uid}`).order('updated_at', { ascending: false })),
+    queryRows(supabase.from('profile_posts').select('*').order('created_at', { ascending: false }).limit(350)),
+    queryRows(supabase.from('profile_post_likes').select('*').limit(7000)),
+    queryRows(supabase.from('profile_post_bookmarks').select('*').eq('user_id', uid).limit(2000)),
+    queryRows(supabase.from('favorites').select('*').eq('user_id', uid)),
+    queryRows(supabase.from('blocked_users').select('*').eq('blocker_id', uid)),
+    queryRows(supabase.from('chats').select('*').order('updated_at', { ascending: false })),
+    queryRows(supabase.from('chat_members').select('*')),
+    queryRows(supabase.from('chat_keys').select('*').eq('user_id', uid)),
+    queryRows(supabase.rpc('recent_messages_for_my_chats', { p_per_chat: 60 })),
+    queryRows(supabase.from('message_reactions').select('*').limit(5000)),
+    queryRows(supabase.from('chat_user_settings').select('*').eq('user_id', uid)),
+    queryRows(supabase.from('notes').select('*').order('created_at', { ascending: false }).limit(120)),
+    queryRows(supabase.from('moments').select('*').eq('archived', false).order('created_at', { ascending: false }).limit(120)),
+    queryRows(supabase.from('profile_highlights').select('*').order('created_at', { ascending: true }).limit(200)),
+    queryRows(supabase.from('notifications').select('*').eq('user_id', uid).order('created_at', { ascending: false }).limit(120)),
+    queryRows(supabase.from('link_now_statuses').select('*').gt('expires_at', new Date().toISOString()).order('updated_at', { ascending: false }).limit(80)),
+    queryRows(supabase.from('official_announcements').select('*').eq('published', true).order('priority', { ascending: false }).order('created_at', { ascending: false }).limit(40)),
   ])
 
   const profiles: Record<string, Profile> = {}
@@ -148,12 +161,21 @@ export async function bootstrap(session: Session): Promise<BootstrapData> {
   const likesByPost = new Map<string, string[]>()
   for (const row of likeRows) likesByPost.set(row.post_id, [...(likesByPost.get(row.post_id) || []), row.user_id])
   const bookmarks = new Set(bookmarkRows.map(row => row.post_id))
+
+  const storagePaths = Array.from(new Set(postRows.map(row => row.media_path).filter((value): value is string => Boolean(value) && !/^https?:/i.test(value))))
+  const mediaMap = new Map<string, string>()
+  if (storagePaths.length) {
+    const { data: signed } = await supabase.storage.from('profile-posts').createSignedUrls(storagePaths, 60 * 60)
+    for (const item of signed || []) if (item.path && item.signedUrl) mediaMap.set(item.path, item.signedUrl)
+  }
+
   const posts: Post[] = postRows.map(row => ({
     id: row.id,
     authorId: row.author_id,
     body: row.body || '',
     mediaPath: row.media_path || null,
     mediaType: row.media_type || null,
+    mediaUrl: row.media_path ? (/^https?:/i.test(row.media_path) ? row.media_path : mediaMap.get(row.media_path) || null) : null,
     createdAt: toMs(row.created_at) || now,
     updatedAt: toMs(row.updated_at),
     parentId: row.parent_id || null,
@@ -163,7 +185,25 @@ export async function bootstrap(session: Session): Promise<BootstrapData> {
     likeCount: (likesByPost.get(row.id) || []).length,
     likedByMe: (likesByPost.get(row.id) || []).includes(uid),
     bookmarkedByMe: bookmarks.has(row.id),
+    replyCount: 0,
+    repostCount: 0,
+    quoteCount: 0,
   }))
+  const postMap = new Map(posts.map(post => [post.id, post]))
+  for (const post of posts) {
+    if (post.parentId) {
+      const parent = postMap.get(post.parentId)
+      if (parent) parent.replyCount = (parent.replyCount || 0) + 1
+    }
+    if (post.repostOfId) {
+      const source = postMap.get(post.repostOfId)
+      if (source) source.repostCount = (source.repostCount || 0) + 1
+    }
+    if (post.quoteOfId) {
+      const source = postMap.get(post.quoteOfId)
+      if (source) source.quoteCount = (source.quoteCount || 0) + 1
+    }
+  }
 
   const connectedIds: string[] = []
   const requests: LinkRequest[] = []
@@ -232,8 +272,15 @@ export async function bootstrap(session: Session): Promise<BootstrapData> {
     id: row.id, ownerId: row.owner_id, text: row.text || '', emoji: row.emoji || null,
     audience: row.audience || 'links', createdAt: toMs(row.created_at) || now, expiresAt: toMs(row.expires_at) || now + 86400000,
   }))
-  const moments: Moment[] = momentRows.filter(row => !row.expires_at || new Date(row.expires_at).getTime() > now).map(row => ({
-    id: row.id, ownerId: row.owner_id, imageUrl: row.image_url || null, caption: row.caption || '', emoji: row.emoji || null,
+  const activeMomentRows = momentRows.filter(row => !row.expires_at || new Date(row.expires_at).getTime() > now)
+  const momentStoragePaths = Array.from(new Set(activeMomentRows.map(row => row.image_url).filter((value): value is string => Boolean(value) && !/^https?:/i.test(value))))
+  const momentMediaMap = new Map<string, string>()
+  if (momentStoragePaths.length) {
+    const { data: signed } = await supabase.storage.from('moments-media').createSignedUrls(momentStoragePaths, 60 * 60)
+    for (const item of signed || []) if (item.path && item.signedUrl) momentMediaMap.set(item.path, item.signedUrl)
+  }
+  const moments: Moment[] = activeMomentRows.map(row => ({
+    id: row.id, ownerId: row.owner_id, imageUrl: row.image_url ? (/^https?:/i.test(row.image_url) ? row.image_url : momentMediaMap.get(row.image_url) || null) : null, caption: row.caption || '', emoji: row.emoji || null,
     createdAt: toMs(row.created_at) || now, expiresAt: toMs(row.expires_at) || now + 86400000,
   }))
   const highlights: Highlight[] = highlightRows.map(row => ({ id: row.id, ownerId: row.owner_id, momentId: row.moment_id, title: row.title || 'Highlight', coverEmoji: row.cover_emoji || null }))
@@ -241,12 +288,19 @@ export async function bootstrap(session: Session): Promise<BootstrapData> {
     id: row.id, userId: row.user_id, actorId: row.actor_id || null, type: row.type || 'activity', title: row.title || 'LINK', body: row.body || '', read: Boolean(row.read),
     createdAt: toMs(row.created_at) || now, entityType: row.entity_type || null, entityId: row.entity_id || null,
   }))
+  const linkNow: LinkNowStatus[] = linkNowRows.filter(row => !row.expires_at || new Date(row.expires_at).getTime() > now).map(row => ({
+    userId: row.user_id, text: row.text || '', icon: row.icon || 'sparkles', color: row.color || '#7C5CFF', expiresAt: toMs(row.expires_at) || now + 86400000,
+  }))
+  const officialAnnouncements: OfficialAnnouncement[] = officialRows.filter(row => !row.expires_at || new Date(row.expires_at).getTime() > now).map(row => ({
+    id: row.id, title: row.title || 'LINK Official', body: row.body || '', actionLabel: row.action_label || null, actionUrl: row.action_url || null,
+    createdAt: toMs(row.created_at) || now, expiresAt: toMs(row.expires_at), priority: Number(row.priority || 0),
+  }))
 
   return {
     me: profiles[uid], profiles, settings, entitlements, posts,
     connectedIds: Array.from(new Set(connectedIds)), requests,
     favorites: favoriteRows.map(row => row.favorite_user_id), blocked: blockedRows.map(row => row.blocked_id),
-    chats, messagesByChat, notes, moments, highlights, notifications,
+    chats, messagesByChat, notes, moments, highlights, notifications, linkNow, officialAnnouncements,
   }
 }
 
@@ -304,9 +358,48 @@ export async function uploadAvatar(uid: string, file: File) {
   return data.publicUrl
 }
 
-export async function createPost(uid: string, body: string, options: { parentId?: string | null; quoteOfId?: string | null } = {}) {
-  const { error } = await supabase.from('profile_posts').insert({ author_id: uid, body: body.trim(), parent_id: options.parentId || null, quote_of_id: options.quoteOfId || null })
-  if (error) throw error
+export async function createMoment(uid: string, file: File, caption = '') {
+  const extension = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg'
+  const path = `${uid}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${extension}`
+  const { error: uploadError } = await supabase.storage.from('moments-media').upload(path, file, { contentType: file.type || 'image/jpeg' })
+  if (uploadError) throw uploadError
+  const { error } = await supabase.from('moments').insert({
+    owner_id: uid,
+    image_url: path,
+    caption: caption.trim(),
+    audience: 'links',
+    expires_at: new Date(Date.now() + 86400000).toISOString(),
+    archived: false,
+  })
+  if (error) {
+    await supabase.storage.from('moments-media').remove([path]).catch(() => {})
+    throw error
+  }
+}
+
+export async function createPost(uid: string, body: string, options: { parentId?: string | null; quoteOfId?: string | null; repostOfId?: string | null } = {}, mediaFile?: File | null) {
+  let mediaPath: string | null = null
+  let mediaType: string | null = null
+  if (mediaFile) {
+    const extension = mediaFile.type === 'image/png' ? 'png' : mediaFile.type === 'image/webp' ? 'webp' : mediaFile.type === 'image/gif' ? 'gif' : 'jpg'
+    mediaPath = `${uid}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${extension}`
+    mediaType = 'image'
+    const { error: uploadError } = await supabase.storage.from('profile-posts').upload(mediaPath, mediaFile, { contentType: mediaFile.type || 'image/jpeg' })
+    if (uploadError) throw uploadError
+  }
+  const { error } = await supabase.from('profile_posts').insert({
+    author_id: uid,
+    body: body.trim(),
+    media_path: mediaPath,
+    media_type: mediaType,
+    parent_id: options.parentId || null,
+    quote_of_id: options.quoteOfId || null,
+    repost_of_id: options.repostOfId || null,
+  })
+  if (error) {
+    if (mediaPath) await supabase.storage.from('profile-posts').remove([mediaPath]).catch(() => {})
+    throw error
+  }
 }
 
 export async function togglePostLike(uid: string, post: Post) {
